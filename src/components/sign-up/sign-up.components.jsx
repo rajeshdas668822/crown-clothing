@@ -2,7 +2,7 @@ import React, { Component} from 'react'
 import './sign-up.styles.scss'
 import FormInput from '../form-input/form-input.component'
 import CustomButton from '../custom-button/custom-button.component'
-import { auth, createUserProfileDocument} from '../../firebase/firebase-utils'
+import { auth, createUserProfileDocument,updateUserProfileDocument} from '../../firebase/firebase-utils'
 
 class SignUp extends Component { 
     constructor() {
@@ -25,19 +25,26 @@ class SignUp extends Component {
             return;
         }
        
-        try {            
-            const { user } = await auth.createUserWithEmailAndPassword(email, password);
-            await createUserProfileDocument(user, { displayName });            
+        try { 
+
+            const { user } = await auth.signInWithEmailAndPassword(email, password);
+            if (!user) {
+                
+                const { newUser } = await auth.createUserWithEmailAndPassword(email, password);
+                await createUserProfileDocument(newUser, { displayName });
+                
+            } else { 
+                await updateUserProfileDocument(user, { displayName });
+            }
             this.setState({
-                displayName: "",
-                email: "",
-                password: "",
-                confirmPassword: ""
-            });
+                    displayName: "",
+                    email: "",
+                    password: "",
+                    confirmPassword: ""
+                });
 
         }
-        catch (error) { 
-             console.log("inside Error");
+        catch (error) {           
             console.error(error);
         }
 
